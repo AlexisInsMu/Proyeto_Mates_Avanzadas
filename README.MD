@@ -63,6 +63,13 @@ sudo apt install -y \
 ```bash
 
 git clone
+python3 -m venv venv
+source venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+python main.py
+```
+
 
 
 
