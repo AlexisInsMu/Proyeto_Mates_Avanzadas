@@ -173,7 +173,14 @@ GradientPage {
                 ComboBox {
                     id: noiseTypeCombo
                     Layout.fillWidth: true
-                    model: ["Gaussiano", "Sal y Pimienta", "Uniforme", "Poisson"]
+                    model: noiseController.availableNoises
+                    enabled: originalImagePath !== ""
+
+                    onCurrentTextChanged: {
+                        if (currentText !== "") {
+                            noiseController.selectNoise(currentText)
+                        }
+                    }
 
                     background: Rectangle {
                         radius: 6

@@ -72,4 +72,21 @@ python main.py
 
 
 
+### Como configurar en Windows
+1. Instalar Python 3.10+ desde [python.org](https://www.python.org/downloads/windows/)
+2. Instalar Git desde [git-scm.com](https://git-scm.com/download/win)
+3. Abrir PowerShell y ejecutar:
+```powershell
+git clone
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+pip install --upgrade pip
+pip install -r requirements.txt
+python main.py
+```
+
+
+
+
+
 
