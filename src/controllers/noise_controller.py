@@ -159,21 +159,15 @@ class NoiseController(QObject):
         noise_methods = []
 
         for method_name in dir(self._noise_instance):
-            if method_name.startswith('_') or not callable(getattr(self._noise_instance, method_name)):
+            if method_name.startswith('_'):
                 continue
 
-            try:
-                method = getattr(self._noise_instance, method_name)
-                sig = inspect.signature(method)
-
-                # Excluir métodos que retornan tuplas o tienen 'detailed' en el nombre
-                if sig.return_annotation != inspect.Signature.empty:
-                    if sig.return_annotation == tuple or 'tuple' in str(sig.return_annotation).lower():
-                        continue
-
-                noise_methods.append(method_name)
-
-            except Exception:
+            attr = getattr(self._noise_instance, method_name)
+            if not callable(attr):
                 continue
 
+            noise_methods.append(method_name)
+            print(f"Método encontrado: {method_name}")  # DEBUG
+
+        print(f"Total métodos: {noise_methods}")  # DEBUG
         return sorted(noise_methods)

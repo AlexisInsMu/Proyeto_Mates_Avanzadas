@@ -18,6 +18,9 @@ GradientPage {
         function onNoiseApplied(path) {
             noisyImagePath = path
         }
+        function onErrorOccurred(message) {
+            console.error("Error:", message)
+        }
     }
 
     RowLayout {
@@ -25,7 +28,7 @@ GradientPage {
         anchors.margins: 20
         spacing: 20
 
-        // Panel izquierdo - DropArea estilo ComparativeView
+        // Panel izquierdo - Imagen Original
         Rectangle {
             Layout.preferredWidth: 350
             Layout.fillHeight: true
@@ -84,10 +87,9 @@ GradientPage {
                     DropArea {
                         id: dropArea
                         anchors.fill: parent
-                        onDropped: function(drop) {
+                        onDropped: (drop) => {
                             if (drop.hasUrls) {
                                 noiseController.loadImage(drop.urls[0])
-                                originalImagePath = drop.urls[0]
                             }
                         }
                     }
@@ -141,7 +143,7 @@ GradientPage {
             }
         }
 
-        // Panel de controles de ruido
+        // Panel de controles
         Rectangle {
             Layout.preferredWidth: 320
             Layout.fillHeight: true
@@ -203,57 +205,75 @@ GradientPage {
                     color: "#BDBDBD"
                 }
 
-                Label {
-                    text: "Intensidad: " + intensitySlider.value.toFixed(2)
-                    font.bold: true
-                    font.pixelSize: 14
-                    color: "#000000"
-                }
-
-                Slider {
-                    id: intensitySlider
+                // Parámetros dinámicos
+                ScrollView {
                     Layout.fillWidth: true
-                    from: 0
-                    to: 1
-                    value: 0.1
-                    stepSize: 0.01
+                    Layout.fillHeight: true
 
-                    background: Rectangle {
-                        x: intensitySlider.leftPadding
-                        y: intensitySlider.topPadding + intensitySlider.availableHeight / 2 - height / 2
-                        implicitWidth: 200
-                        implicitHeight: 4
-                        width: intensitySlider.availableWidth
-                        height: implicitHeight
-                        radius: 2
-                        color: "#BDBDBD"
+                    ColumnLayout {
+                        width: parent.width
+                        spacing: 10
 
-                        Rectangle {
-                            width: intensitySlider.visualPosition * parent.width
-                            height: parent.height
-                            color: "#009688"
-                            radius: 2
+                        Repeater {
+                            id: paramRepeater
+                            model: {
+                                if (!noiseController.currentNoiseParameters) return []
+                                var params = noiseController.currentNoiseParameters
+                                var paramList = []
+                                for (var key in params) {
+                                    paramList.push({
+                                        name: key,
+                                        info: params[key]
+                                    })
+                                }
+                                return paramList
+                            }
+
+                            delegate: ColumnLayout {
+                                readonly property string paramName: modelData.name
+                                readonly property var paramInfo: modelData.info
+
+                                Layout.fillWidth: true
+                                spacing: 5
+
+                                Label {
+                                    text: paramName + (paramInfo.required ? " *" : "")
+                                    font.bold: paramInfo.required
+                                    font.pixelSize: 12
+                                    color: "#000000"
+                                }
+
+                                Loader {
+                                    Layout.fillWidth: true
+                                    sourceComponent: {
+                                        if (paramInfo.type === "bool") return boolComponent
+                                        if (paramInfo.type === "int" || paramInfo.type === "float") return numberComponent
+                                        return textComponent
+                                    }
+
+                                    onLoaded: {
+                                        item.paramName = paramName
+                                        item.paramInfo = paramInfo
+                                    }
+                                }
+
+                                Rectangle {
+                                    Layout.fillWidth: true
+                                    height: 1
+                                    color: "#E0E0E0"
+                                }
+                            }
+                        }
+
+                        Label {
+                            Layout.alignment: Qt.AlignHCenter
+                            text: "Selecciona un tipo de ruido para configurar parámetros"
+                            font.italic: true
+                            font.pixelSize: 12
+                            visible: paramRepeater.count === 0
+                            color: "#757575"
                         }
                     }
-
-                    handle: Rectangle {
-                        x: intensitySlider.leftPadding + intensitySlider.visualPosition * (intensitySlider.availableWidth - width)
-                        y: intensitySlider.topPadding + intensitySlider.availableHeight / 2 - height / 2
-                        implicitWidth: 18
-                        implicitHeight: 18
-                        radius: 9
-                        color: intensitySlider.pressed ? "#00796B" : "#009688"
-                        border.color: "#004D40"
-                        border.width: 2
-                    }
-                }
-
-                Label {
-                    text: "Rango: 0.00 (sin ruido) - 1.00 (máximo)"
-                    font.pixelSize: 11
-                    color: "#757575"
-                    Layout.fillWidth: true
-                    wrapMode: Text.WordWrap
                 }
 
                 Item { Layout.fillHeight: true }
@@ -262,17 +282,13 @@ GradientPage {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 50
                     text: "⚡ Aplicar Ruido"
-                    enabled: originalImagePath !== ""
+                    enabled: originalImagePath !== "" && noiseTypeCombo.currentText !== ""
 
                     background: Rectangle {
                         radius: 8
                         color: parent.enabled ? (parent.hovered ? "#00897B" : "#009688") : "#BDBDBD"
                         border.color: parent.enabled ? "#00695C" : "#9E9E9E"
                         border.width: 2
-
-                        Behavior on color {
-                            ColorAnimation { duration: 200 }
-                        }
                     }
 
                     contentItem: Label {
@@ -285,20 +301,8 @@ GradientPage {
                     }
 
                     onClicked: {
-                        noiseController.addNoise(
-                            noiseTypeCombo.currentText,
-                            intensitySlider.value
-                        )
+                        noiseController.applyNoise()
                     }
-                }
-
-                Label {
-                    text: "💡 El ruido se aplicará sobre la imagen original"
-                    font.pixelSize: 10
-                    color: "#757575"
-                    Layout.fillWidth: true
-                    wrapMode: Text.WordWrap
-                    horizontalAlignment: Text.AlignHCenter
                 }
             }
         }
@@ -339,6 +343,7 @@ GradientPage {
                         source: noisyImagePath
                         fillMode: Image.PreserveAspectFit
                         visible: noisyImagePath !== ""
+                        cache: false
                     }
 
                     Label {
@@ -391,5 +396,94 @@ GradientPage {
         nameFilters: ["Imágenes PNG (*.png)", "Imágenes JPEG (*.jpg)"]
         defaultSuffix: "png"
         onAccepted: noiseController.saveImage(selectedFile)
+    }
+    // Validadores
+    IntValidator {
+        id: intValidator
+    }
+
+    DoubleValidator {
+        id: doubleValidator
+        decimals: 6
+        notation: DoubleValidator.StandardNotation
+    }
+
+    // Componentes de parámetros
+    Component {
+        id: textComponent
+
+        TextField {
+            property var paramInfo: ({})
+            property string paramName: ""
+
+            placeholderText: paramInfo.default !== null ? String(paramInfo.default) : "Ingrese valor"
+
+            background: Rectangle {
+                radius: 6
+                color: "white"
+                border.color: "#BDBDBD"
+                border.width: 1
+            }
+
+            onTextChanged: noiseController.setParameterValue(paramName, text)
+        }
+    }
+
+    Component {
+        id: numberComponent
+
+        RowLayout {
+            property var paramInfo: ({})
+            property string paramName: ""
+
+            TextField {
+                id: numberField
+                Layout.fillWidth: true
+                text: paramInfo.default !== null ? String(paramInfo.default) : "0"
+                placeholderText: paramInfo.type === "float" ? "0.0" : "0"
+                validator: paramInfo.type === "float" ? doubleValidator : intValidator
+
+                background: Rectangle {
+                    radius: 6
+                    color: numberField.acceptableInput ? "white" : "#FFEBEE"
+                    border.color: numberField.acceptableInput ? "#BDBDBD" : "#EF5350"
+                    border.width: 1
+                }
+
+                onTextChanged: {
+                    if (acceptableInput) {
+                        var value = paramInfo.type === "float" ? parseFloat(text) : parseInt(text)
+                        noiseController.setParameterValue(paramName, value)
+                    }
+                }
+            }
+
+            Label {
+                text: paramInfo.type === "float" ? "⚠️ Decimal" : "🔢 Entero"
+                font.pixelSize: 10
+                color: "#757575"
+            }
+        }
+    }
+
+    Component {
+        id: boolComponent
+
+        CheckBox {
+            property var paramInfo: ({})
+            property string paramName: ""
+
+            checked: paramInfo.default !== null ? paramInfo.default : false
+            text: "Activar"
+
+            contentItem: Label {
+                text: parent.text
+                color: "#000000"
+                leftPadding: parent.indicator.width + parent.spacing
+                verticalAlignment: Text.AlignVCenter
+            }
+
+            onCheckedChanged: noiseController.setParameterValue(paramName, checked)
+        }
     }
 }
