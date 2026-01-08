@@ -71,10 +71,15 @@ python main.py
 ```
 
 
+### Requisitos para Windows
+- Instalar Python 3.10+ desde [python.org](https://www.python.org/downloads/windows/)
+- Instalar Git desde [git-scm.com](https://git-scm.com/download/win)
+- Configurar variables de entorno para Python y Git
+- Instalar Visual C++ Build Tools desde [visualstudio.microsoft.com](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
+- Instalar gcc y make usando [MSYS2](https://www.msys2.org/) o [MinGW-w64](http://mingw-w64.org/doku.php)
+
 
 ### Como configurar en Windows
-1. Instalar Python 3.10+ desde [python.org](https://www.python.org/downloads/windows/)
-2. Instalar Git desde [git-scm.com](https://git-scm.com/download/win)
 3. Abrir PowerShell y ejecutar:
 ```powershell
 git clone
