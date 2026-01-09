@@ -92,6 +92,33 @@ python main.py
 
 
 
+### Referencias
+Gonzalez, R. C., & Woods, R. E. (2018). Digital image processing (4.ª ed.). Pearson. 
+
+Harris, C. R., Millman, K. J., van der Walt, S. J., Gommers, R., Virtanen, P., Cournapeau, D., ... & Oliphant, T. E. (2020). Array programming with NumPy. Nature, 585(7825), 357–362. https://doi.org/10.1038/s41586-020-2649-2 
+
+Bradski, G. (2000). The OpenCV Library. Dr. Dobb's Journal of Software Tools, 25(11), 120–125.
+
+
+### GIthub referenciados
+
+
+1. **Trabajo de referencia**, (2023), *Programa Delfin 2023* [Software]. Github  
+   [LINK Github](https://github.com/AlexisInsMu/Delfin-programa-2023)
+
+ 
+
+ 
+
+
+### autores : 
+Jiménez Rodríguez Alejandro Martin
+Mendoza Mendoza Alexsandra
+Murillo Barrientos Alexis Adrian
+Suárez Elizalde Miguel Angel
+
+
+
 
 
 
